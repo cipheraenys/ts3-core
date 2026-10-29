@@ -1,8 +1,8 @@
-# Port contract: `src/port.h`
+# Port contract: `core/port.h`
 
 Copyright (c) 2026 cipheraenys@gmail.com, MIT license.
 
-`src/port.h` declares the eight functions the core (`src/ts3.cpp`, `src/crypto.cpp`) calls to reach the outside world. Anything that implements them can run the core. This file says what "implements" means; `test/port_conformance.cpp` checks the parts that can be checked.
+`core/port.h` declares the eight functions the core (`protocols/ts3/ts3.cpp`, `core/crypto.cpp`) calls to reach the outside world. Anything that implements them can run the core. This file says what "implements" means; `test/port_conformance.cpp` checks the parts that can be checked.
 
 Words in capitals follow [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119).
 
@@ -24,7 +24,7 @@ Creates a UDP socket whose peer is `host:port`.
 - "Connected" semantics: `send` goes to the peer, and the port SHOULD discard datagrams from other sources. POSIX `connect()` on a `SOCK_DGRAM` socket does both ([POSIX connect](https://pubs.opengroup.org/onlinepubs/9699919799/functions/connect.html)). A port that only calls `sendto`/`recvfrom` (the FreeRTOS port) is still correct: the core authenticates every packet with EAX, so foreign datagrams are dropped by the crypto, at the cost of CPU.
 - MUST be callable repeatedly: the core closes and reopens the socket on an init restart (`ts3.cpp:318`). Closed handles MUST become reusable, so a fixed-size table does not leak.
 - At least one handle MUST be open at a time. The core uses exactly one.
-- The network may not be up yet. Returning `< 0` is correct then; the core logs it and `connect()` fails. (On QuecOpen the data call must exist first, see `ports/quecopen/BUILD.md`.)
+- The network may not be up yet. Returning `< 0` is correct then; the core logs it and `connect()` fails. (On QuecOpen the data call must exist first, see `ports/quecopen-ec600m/BUILD.md`.)
 
 ## `void port_udp_close(int s)`
 
@@ -63,7 +63,7 @@ Waits up to `timeout_ms` for one datagram and copies it into `buf`.
 Milliseconds from a monotonic clock, arbitrary origin (boot is fine), wrapping at 2^32 (about 49.7 days).
 
 - MUST NOT go backwards except by that wrap. In particular it MUST NOT be derived from the RTC or `port_unix_time`: NITZ/NTP/RTC adjustments step wall time, and every retransmit, ping and timeout in the core (`ts3.cpp:129-146`) is computed from this clock. POSIX names this property `CLOCK_MONOTONIC` ([clock_gettime](https://pubs.opengroup.org/onlinepubs/9699919799/functions/clock_gettime.html)); C++ calls it `steady_clock` ([cppreference](https://en.cppreference.com/w/cpp/chrono/steady_clock)).
-- Resolution: 10 ms or better. The core's retransmit and ping timers are 1000 ms and up, but applications pace 20 ms Opus frames from it (`pc/main.cpp`, `rtos/freertos_qemu/app.cpp`); a 100 Hz tick is the practical floor, 1 kHz is what the QEMU demo uses (`configTICK_RATE_HZ`).
+- Resolution: 10 ms or better. The core's retransmit and ping timers are 1000 ms and up, but applications pace 20 ms Opus frames from it (`ports/pc/main.cpp`, `ports/freertos-lwip/app.cpp`); a 100 Hz tick is the practical floor, 1 kHz is what the QEMU demo uses (`configTICK_RATE_HZ`).
 - Elapsed-time arithmetic in the core (`now - t0`) is wrap-safe. Absolute deadline comparisons (`now < p.next`, `ts3.cpp:136`) are not, so a session that spans the wrap can stall retransmits briefly. Starting at 0 at boot makes this a 49.7-day-uptime issue.
 
 ## `uint32_t port_unix_time(void)`
@@ -91,7 +91,7 @@ If an attacker can enumerate the generator's outputs, they can recompute the eph
 - The signature has no error channel. If the source fails or is not ready, block, reset or halt. Never return with `buf` unfilled or filled from a fallback PRNG.
 - `len == 0` writes nothing. `buf` may be unaligned. The core's own calls ask for 4 to 64 bytes; mbedTLS chooses the sizes for its callback.
 - On mbedTLS-based ports, `mbedtls_hardware_poll()` is the hook for a platform entropy source ([mbedTLS entropy API](https://mbed-tls.readthedocs.io/projects/api/en/v3.6.0/api/file/entropy_8h/)); you can feed the same source to `port_random`.
-- `std::random_device` is not a guarantee: the standard allows a deterministic fallback, and old MinGW-w64 had one (fixed in GCC 9.2) ([cppreference](https://en.cppreference.com/w/cpp/numeric/random/random_device)). `pc/port_pc.cpp` uses it; it is acceptable for development, check your toolchain for anything else.
+- `std::random_device` is not a guarantee: the standard allows a deterministic fallback, and old MinGW-w64 had one (fixed in GCC 9.2) ([cppreference](https://en.cppreference.com/w/cpp/numeric/random/random_device)). `ports/pc/port_pc.cpp` uses it; it is acceptable for development, check your toolchain for anything else.
 
 The conformance test runs statistical sanity checks (byte distribution, bit balance, repeats, period shorter than 4 KiB, consecutive calls differ). They reject constants, counters and short-period generators. They do not prove entropy: the seeded LCG used by the FreeRTOS demo's `xApplicationGetRandomNumber` passes them (checked, see `ports/README.md`). Review the source, not the test result.
 
@@ -100,7 +100,7 @@ The conformance test runs statistical sanity checks (byte distribution, bit bala
 printf-style diagnostics, one line per call.
 
 - The port appends the newline; callers do not.
-- `fmt` is always a string literal in this repo. Formats used: `%d %u %x %c %s` and `%.Ns` (`pc/main.cpp:74`). `%llu` and `%lld` MUST NOT be used by callers: newlib-nano's printf does not support them ([newlib mailing list](https://sourceware.org/pipermail/newlib/2026/022568.html), [newlib nano-formatted-io note](https://sourceware.org/legacy-ml/newlib/2014/msg00169.html)); use `ts3c::u64_dec()`.
+- `fmt` is always a string literal in this repo. Formats used: `%d %u %x %c %s` and `%.Ns` (`ports/pc/main.cpp:74`). `%llu` and `%lld` MUST NOT be used by callers: newlib-nano's printf does not support them ([newlib mailing list](https://sourceware.org/pipermail/newlib/2026/022568.html), [newlib nano-formatted-io note](https://sourceware.org/legacy-ml/newlib/2014/msg00169.html)); use `ts3c::u64_dec()`.
 - Output MAY be truncated (`port_quecopen.cpp` formats into 256 bytes) but MUST NOT overflow a buffer. Output MAY be dropped entirely (the stub does).
 - It is called during start-up before the network exists, so it must not depend on a socket.
 
@@ -144,4 +144,4 @@ while True:
     d, a = s.recvfrom(4096); s.sendto(d, a)
 ```
 
-`rtos/freertos_qemu/` has this wired up: `make CONF_PORT=7777` (see `ports/README.md`).
+`ports/freertos-lwip/` has this wired up: `make CONF_PORT=7777` (see `ports/README.md`).

@@ -1,10 +1,10 @@
 # Porting to a new chip / RTOS
 
-`src/port.h` is the only platform seam. `src/ts3.*`, `src/crypto.*` and `third_party/ed25519` are portable and must not change per target.
+`core/port.h` is the only platform seam. `protocols/ts3/`, `core/crypto.*` and `third_party/ed25519` are portable and must not change per target.
 
-## 1. Implement `src/port.h`
+## 1. Implement `core/port.h`
 
-Start from `ports/example/port_stub.cpp` (compiles, returns neutral values) or a working reference: `pc/port_pc.cpp` (sockets) and `rtos/freertos_qemu/port_freertos.cpp` (FreeRTOS+TCP). The exact semantics, with references, are in [PORT_CONTRACT.md](PORT_CONTRACT.md); the table below is the summary.
+Start from `ports/example/port_stub.cpp` (compiles, returns neutral values) or a working reference: `ports/pc/port_pc.cpp` (sockets) and `ports/freertos-lwip/port_freertos.cpp` (FreeRTOS+TCP). The exact semantics, with references, are in [PORT_CONTRACT.md](PORT_CONTRACT.md); the table below is the summary.
 
 | Function | Contract | Typical source |
 |---|---|---|
@@ -21,10 +21,10 @@ Gotcha: newlib-nano `printf` has no `%llu`; use `ts3c::u64_dec()` for 64-bit num
 
 ## 2. Build
 
-- Sources: `src/ts3.cpp`, `src/crypto.cpp`, `third_party/ed25519/{fe,ge,sc}.c`, your port file.
+- Sources: `protocols/ts3/ts3.cpp`, `core/crypto.cpp`, `third_party/ed25519/src/{fe,ge,sc}.c` (git submodule), your port file.
 - Compile C++ with `-std=c++17 -fno-exceptions -fno-rtti`.
 - mbedTLS 3.6 with: `CMAC_C`, `CIPHER_MODE_CTR`, `ECDSA_C`, `ECP_DP_SECP256R1`, `SHA1/256/512`, `BASE64_C`
-  (see `rtos/freertos_qemu/ts3_mbedtls_config.h` for a working config).
+  (see `ports/freertos-lwip/ts3_mbedtls_config.h` for a working config).
 - libopus, fixed-point build on cores without FPU (`-DFIXED_POINT -DDISABLE_FLOAT_API`).
 
 ## 3. Identity

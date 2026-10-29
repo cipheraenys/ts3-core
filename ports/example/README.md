@@ -1,6 +1,6 @@
 # Port template
 
-`port_stub.cpp` implements every function in `src/port.h` with neutral values so a new port compiles and links before any hardware code exists. Nothing in it works: `port_udp_open` returns -1, `port_unix_time` returns 0, `port_random` zero-fills.
+`port_stub.cpp` implements every function in `core/port.h` with neutral values so a new port compiles and links before any hardware code exists. Nothing in it works: `port_udp_open` returns -1, `port_unix_time` returns 0, `port_random` zero-fills.
 
 ## Use
 

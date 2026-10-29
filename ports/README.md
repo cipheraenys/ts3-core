@@ -1,14 +1,14 @@
 # Ports
 
-A port is one C++ file that defines the eight functions in `src/port.h`, plus a README saying what was implemented and what was actually run. The contract is [docs/PORT_CONTRACT.md](../docs/PORT_CONTRACT.md); `test/port_conformance.cpp` checks what can be checked.
+A port is one C++ file that defines the eight functions in `core/port.h`, plus a README saying what was implemented and what was actually run. The contract is [docs/PORT_CONTRACT.md](../docs/PORT_CONTRACT.md); `test/port_conformance.cpp` checks what can be checked.
 
-New ports go in `ports/<target>/port_<target>.cpp`. Two older ports stay where their build scripts reference them (`build.sh` uses `pc/`, `rtos/freertos_qemu/Makefile` uses its own directory), so they were not moved.
+Every port lives in `ports/<target>/` with a `port_<target>.cpp`. Sources include `"port.h"` and `"ts3.h"` without a path; each build adds `-I core -I protocols/ts3`.
 
 | `-DTS3_PORT=` | File | Transport | Build | Status |
 |---|---|---|---|---|
-| `pc` | `pc/port_pc.cpp` | BSD sockets / Winsock | `build.sh`, CMake | tested: selftest and `port_conformance` pass on Debian trixie; `ts3cli` against `teamspeak:latest` (see top-level README) |
-| `freertos` | `rtos/freertos_qemu/port_freertos.cpp` | FreeRTOS+TCP | `rtos/freertos_qemu/Makefile` | tested in QEMU `mps2-an385` only; `port_random` does not meet the contract |
-| `quecopen` | `ports/quecopen/port_quecopen.cpp` | lwIP sockets (QuecOpen SDK) | `ports/quecopen/BUILD.md` | builds and links; not run on hardware |
+| `pc` | `ports/pc/port_pc.cpp` | BSD sockets / Winsock | `build.sh`, CMake | tested: selftest and `port_conformance` pass on Debian trixie; `ts3cli` against `teamspeak:latest` (see top-level README) |
+| `freertos` | `ports/freertos-lwip/port_freertos.cpp` | FreeRTOS+TCP | `ports/freertos-lwip/Makefile` | tested in QEMU `mps2-an385` only; `port_random` does not meet the contract |
+| `quecopen` | `ports/quecopen-ec600m/port_quecopen.cpp` | lwIP sockets (QuecOpen SDK) | `ports/quecopen-ec600m/BUILD.md` | builds and links; not run on hardware |
 | `stub` | `ports/example/port_stub.cpp` | none | CMake | template; compiles, does nothing |
 
 CMake: `cmake -S . -B build -DTS3_PORT=pc` (default). `pc` and `stub` build `selftest` and `port_conformance` for the host. `freertos` and `quecopen` build only `libts3c_port.a`; they need a cross toolchain and the RTOS/SDK headers (`-DCMAKE_TOOLCHAIN_FILE=...`, `-DTS3_PORT_INCLUDE_DIRS="dir1;dir2"`). The real firmware builds stay with their own makefiles.
@@ -21,7 +21,7 @@ Development and test port. Uses `getaddrinfo`/`select`/`recv` and `std::random_d
 
 FreeRTOS + FreeRTOS+TCP on `mps2-an385` (Cortex-M3, LAN9118), reusing the official `FreeRTOS_Plus_TCP_Echo_Qemu_mps2` demo for startup and DHCP. Details and measurements: top-level README.
 
-Conformance on this port: `cd rtos/freertos_qemu && make CONF_PORT=7777 run`, with a UDP echo server on the host (the guest reaches the host at `10.0.2.2`):
+Conformance on this port: `cd ports/freertos-lwip && make CONF_PORT=7777 run`, with a UDP echo server on the host (the guest reaches the host at `10.0.2.2`):
 
 ```sh
 python3 -c "import socket; s=socket.socket(2,2); s.bind(('0.0.0.0',7777))
@@ -38,7 +38,7 @@ Deviations from the contract:
 
 ## quecopen
 
-See [quecopen/README.md](quecopen/README.md).
+See [quecopen-ec600m/README.md](quecopen-ec600m/README.md).
 
 ## stub
 

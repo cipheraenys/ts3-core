@@ -3,8 +3,8 @@
 #include <cstdio>
 #include <cstring>
 
-#include "../src/crypto.h"
-#include "../src/port.h"
+#include "crypto.h"
+#include "port.h"
 
 using namespace ts3c;
 

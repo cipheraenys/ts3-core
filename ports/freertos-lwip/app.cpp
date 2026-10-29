@@ -15,8 +15,8 @@ extern "C" {
 #include "FreeRTOS_DHCP.h"
 }
 
-#include "../../src/port.h"
-#include "../../src/ts3.h"
+#include "port.h"
+#include "ts3.h"
 
 #ifndef TS3_HOST
 #define TS3_HOST "10.0.2.2"  // QEMU user networking: the host machine
@@ -24,7 +24,7 @@ extern "C" {
 
 int ts3_selftest_main();  // test/selftest.cpp, built with -Dmain=ts3_selftest_main
 #ifdef TS3_CONFORMANCE_PORT
-#include "../../test/port_conformance.h"
+#include "port_conformance.h"
 #endif
 
 // 16 kHz mono s16le speech clip, linked in raw (stand-in for the microphone).

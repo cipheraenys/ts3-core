@@ -4,12 +4,12 @@
 #   make PLATFORM=linux COMMPILE_DIRS="interface/ts3" DEFAULT_LIBS="common/lib/ql_common_api.lib"
 #
 # Usage: stage.sh <SDK>/ql-application/threadx [<mbedtls36_dir>] [<opus_dir>]
-#   mbedtls/opus default to the repo's FreeRTOS deps at ~/ts3deps.
+#   mbedtls/opus default to the repo submodules: git submodule update --init third_party/mbedtls third_party/opus third_party/ed25519
 set -e
 SDK="${1:?need <SDK>/ql-application/threadx}"
-MB="${2:-$HOME/ts3deps/mbedtls}"
-OPUS="${3:-$HOME/ts3deps/opus}"
 REPO="$(cd "$(dirname "$0")/../../.." && pwd)"
+MB="${2:-$REPO/third_party/mbedtls}"
+OPUS="${3:-$REPO/third_party/opus}"
 D="$SDK/interface/ts3"
 
 TC="$SDK/../../ql-cross-tool/Linux/gcc-arm-none-eabi-9-2019-q4-major/bin"
@@ -19,14 +19,13 @@ ARCH="-mcpu=cortex-r4 -mfloat-abi=soft -mthumb -mthumb-interwork -mlong-calls -O
 
 rm -rf "$D"; mkdir -p "$D/.obj_mb" "$D/.obj_op"
 
-# sources, flattened includes (staged flat, so "../../src/x.h" -> "x.h")
-cp "$REPO"/src/crypto.cpp "$REPO"/src/ts3.cpp "$REPO"/src/*.h "$D"/
-cp "$REPO"/ports/quecopen/port_quecopen.cpp "$REPO"/ports/quecopen/app_quecopen.cpp "$D"/
-cp "$REPO"/third_party/ed25519/fe.c "$REPO"/third_party/ed25519/ge.c "$REPO"/third_party/ed25519/sc.c \
-   "$REPO"/third_party/ed25519/*.h "$D"/
-cp "$REPO"/rtos/freertos_qemu/ts3_mbedtls_config.h "$D"/
-cp "$REPO"/ports/quecopen/sdk-integration/Makefile "$D/Makefile"
-sed -i 's#\.\./\.\./src/##g' "$D"/port_quecopen.cpp "$D"/app_quecopen.cpp
+# sources, staged flat (the sources include "port.h", "ts3.h", ... without paths)
+ED="$REPO/third_party/ed25519/src"
+cp "$REPO"/core/crypto.cpp "$REPO"/core/*.h "$REPO"/protocols/ts3/ts3.cpp "$REPO"/protocols/ts3/ts3.h "$D"/
+cp "$REPO"/ports/quecopen-ec600m/port_quecopen.cpp "$REPO"/ports/quecopen-ec600m/app_quecopen.cpp "$D"/
+cp "$ED"/fe.c "$ED"/ge.c "$ED"/sc.c "$ED"/fe.h "$ED"/ge.h "$ED"/sc.h "$ED"/fixedint.h "$ED"/precomp_data.h "$D"/
+cp "$REPO"/ports/freertos-lwip/ts3_mbedtls_config.h "$D"/
+cp "$REPO"/ports/quecopen-ec600m/sdk-integration/Makefile "$D/Makefile"
 
 # local header copies keep the staged interface self-contained
 cp -r "$MB/include" "$D/inc_mbedtls"

@@ -1,4 +1,4 @@
-// QuecOpen (OCPU) port of src/port.h for Quectel EC600M-class modules (ASR1606 / CraneL).
+// QuecOpen (OCPU) port of core/port.h for Quectel EC600M-class modules (ASR1606 / CraneL).
 //
 // Signatures verified against the EC600M QuecOpen C-SDK (LTE01R06..AIRTC, BETA0212):
 //   ql-sdk/ql-application/threadx/common/include/{ql_rtos,ql_rtc,ql_platform}.h and
@@ -8,10 +8,10 @@
 // so the PDP context / default netif exists for sockets and DNS.
 //
 // Build: add -I.../common/include and -I.../common/include/lwipv4v6 to the SDK app makefile,
-// then compile src/*.cpp, third_party/ed25519/*.c, this file, mbedTLS and libopus.
-// Only this file is per-chip; src/ts3.cpp, src/crypto.cpp, third_party/ are portable.
+// then compile core/crypto.cpp, protocols/ts3/ts3.cpp, third_party/ed25519/src/*.c, this file, mbedTLS and libopus.
+// Only this file is per-chip; protocols/ts3/ts3.cpp, core/crypto.cpp, third_party/ are portable.
 
-#include "../../src/port.h"
+#include "port.h"
 
 #include <cstdarg>
 #include <cstdio>
@@ -125,9 +125,9 @@ void port_log(const char *fmt, ...) {
                                  // SDK log sink (ql_uart/QL_LOG) if your build doesn't wire printf.
 }
 
-// ponytail: audio + PTT are app-layer, not part of src/port.h. Verified SDK APIs for the app main:
+// ponytail: audio + PTT are app-layer, not part of core/port.h. Verified SDK APIs for the app main:
 //   PTT     : ql_get_pwrkey_status(), ql_pwrkey_register_irq(cb)   [ql_power.h]
 //   PCM     : ql_pcm_open(...) + read/write                        [ql_audio.h]
 //   speaker : ql_bind_speakerpa_cb, ql_set_audio_path_receiver     [ql_audio.h, seen in dump]
 // Register the app with application_init(ts3_entry,"ts3",<stack_kib>,<prio>) and feed 20 ms
-// frames to Opus, same loop as rtos/freertos_qemu/app.cpp.
+// frames to Opus, same loop as ports/freertos-lwip/app.cpp.

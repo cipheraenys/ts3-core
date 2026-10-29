@@ -9,9 +9,12 @@ jobs:
     # Debian trixie ships mbedTLS 3.6; ubuntu-24.04's libmbedtls-dev is 2.28, which is too old.
     container: debian:trixie
     steps:
-      - uses: actions/checkout@v4
       - name: Install deps
-        run: apt-get update && apt-get install -y --no-install-recommends g++ gcc make cmake libmbedtls-dev libopus-dev
+        run: apt-get update && apt-get install -y --no-install-recommends git ca-certificates g++ gcc make cmake libmbedtls-dev libopus-dev
+      - uses: actions/checkout@v4
+      # mbedtls/opus submodules are not needed here: the PC build links the system libraries.
+      - name: ed25519 submodule
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE" && git submodule update --init third_party/ed25519
       - name: build.sh + selftest
         run: sh build.sh && ./out/selftest && ./out/port_conformance
       - name: CMake build + ctest

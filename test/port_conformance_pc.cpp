@@ -6,7 +6,7 @@
 #include <cstdlib>
 
 #include "port_conformance.h"
-#include "../src/port.h"
+#include "port.h"
 
 #ifdef _WIN32
 #include <winsock2.h>

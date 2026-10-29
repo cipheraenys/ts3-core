@@ -1,10 +1,10 @@
-// Starting point for a new port: implements src/port.h with neutral values so it compiles and links.
+// Starting point for a new port: implements core/port.h with neutral values so it compiles and links.
 // Replace every body; see docs/PORT_CONTRACT.md and validate with test/port_conformance.cpp.
 // Nothing here is functional or secure.
 #include <cstdarg>
 #include <cstring>
 
-#include "../../src/port.h"
+#include "port.h"
 
 int port_udp_open(const char *host, uint16_t port) { (void)host; (void)port; return -1; }  // TODO: socket + connect
 void port_udp_close(int s) { (void)s; }

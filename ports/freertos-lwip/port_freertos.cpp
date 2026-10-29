@@ -10,7 +10,7 @@ extern "C" {
 #include "FreeRTOS_Sockets.h"
 }
 
-#include "../../src/port.h"
+#include "port.h"
 
 static Socket_t socks[4];
 static freertos_sockaddr dest[4];

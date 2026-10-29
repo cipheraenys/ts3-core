@@ -10,8 +10,8 @@
 #include <map>
 #include <string>
 
-#include "../src/port.h"
-#include "../src/ts3.h"
+#include "port.h"
+#include "ts3.h"
 
 static bool load_identity(const char *path, ts3c::Identity &id) {
     FILE *f = fopen(path, "r");

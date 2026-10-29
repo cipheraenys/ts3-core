@@ -1,15 +1,16 @@
 # TS3 client on FreeRTOS + FreeRTOS+TCP, QEMU mps2-an385 (Cortex-M3, LAN9118 Ethernet).
 # Reuses the official FreeRTOS_Plus_TCP_Echo_Qemu_mps2 demo for startup, UART, DHCP and the NIC driver.
 #   make && make run
+ROOT     := ../..
 FREERTOS ?= $(HOME)/ts3deps/FreeRTOS
-MBEDTLS  ?= $(HOME)/ts3deps/mbedtls
-OPUS     ?= $(HOME)/ts3deps/opus
+# mbedTLS (v3.6.x) and Opus (v1.5.2) are git submodules: git submodule update --init third_party/mbedtls third_party/opus
+MBEDTLS  ?= $(ROOT)/third_party/mbedtls
+OPUS     ?= $(ROOT)/third_party/opus
 TS3_HOST ?= 10.0.2.2
 
 DEMO   := $(FREERTOS)/FreeRTOS-Plus/Demo/FreeRTOS_Plus_TCP_Echo_Qemu_mps2
 KERNEL := $(FREERTOS)/FreeRTOS/Source
 TCP    := $(FREERTOS)/FreeRTOS-Plus/Source/FreeRTOS-Plus-TCP
-ROOT   := ../..
 B      := build
 .DEFAULT_GOAL := $(B)/ts3.axf
 
@@ -19,7 +20,7 @@ CXX = arm-none-eabi-g++
 INC = -I$(DEMO) -I$(DEMO)/CMSIS -I$(KERNEL)/include -I$(KERNEL)/portable/GCC/ARM_CM3 \
       -I$(TCP)/source/include -I$(TCP)/source/portable/Compiler/GCC \
       -I$(TCP)/source/portable/NetworkInterface/MPS2_AN385/ether_lan9118 \
-      -I$(MBEDTLS)/include -I. -I$(ROOT)/third_party/ed25519
+      -I$(MBEDTLS)/include -I. -I$(ROOT)/core -I$(ROOT)/protocols/ts3 -I$(ROOT)/test -I$(ROOT)/third_party/ed25519/src
 DEFS = -DHEAP3 -DMBEDTLS_CONFIG_FILE='"ts3_mbedtls_config.h"' -DTS3_HOST='"$(TS3_HOST)"' -DTS3_BUILD_EPOCH=$(shell date +%s)u
 ARCH = -mthumb -mcpu=cortex-m3
 CFLAGS   = $(ARCH) -Os -g -ffunction-sections -fdata-sections $(INC) $(DEFS)
@@ -36,8 +37,8 @@ DEMO_SRC = $(DEMO)/startup.c $(DEMO)/syscalls.c $(DEMO)/main.c $(DEMO)/main_netw
            $(TCP)/source/portable/NetworkInterface/MPS2_AN385/NetworkInterface.c \
            $(TCP)/source/portable/NetworkInterface/MPS2_AN385/ether_lan9118/smsc9220_eth_drv.c
 LIB_SRC  = $(wildcard $(MBEDTLS)/library/*.c) \
-           $(ROOT)/third_party/ed25519/fe.c $(ROOT)/third_party/ed25519/ge.c $(ROOT)/third_party/ed25519/sc.c
-CXX_SRC  = app.cpp port_freertos.cpp $(ROOT)/src/ts3.cpp $(ROOT)/src/crypto.cpp $(ROOT)/test/selftest.cpp
+           $(ROOT)/third_party/ed25519/src/fe.c $(ROOT)/third_party/ed25519/src/ge.c $(ROOT)/third_party/ed25519/src/sc.c
+CXX_SRC  = app.cpp port_freertos.cpp $(ROOT)/protocols/ts3/ts3.cpp $(ROOT)/core/crypto.cpp $(ROOT)/test/selftest.cpp
 ifdef CONF_PORT
 CXX_SRC += $(ROOT)/test/port_conformance.cpp
 DEFS    += -DTS3_CONFORMANCE_PORT=$(CONF_PORT)

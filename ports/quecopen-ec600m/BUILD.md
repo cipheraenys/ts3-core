@@ -27,8 +27,8 @@ ECP/ECDSA — our `crypto.cpp` needs all of them), so we build **our own mbedTLS
 
 ## Build it
 
-Prereqs: WSL with `unzip`, `bzip2`, `make`; the SDK zip; this repo; mbedTLS 3.6 and Opus sources
-(the repo's FreeRTOS deps at `~/ts3deps` are reused). Then:
+Prereqs: WSL with `unzip`, `bzip2`, `make`; the SDK zip; this repo with its submodules
+(`git submodule update --init third_party/mbedtls third_party/opus third_party/ed25519`; `stage.sh` takes mbedTLS 3.6 and Opus from there unless given other paths). Then:
 
 ```sh
 # 1. extract the full SDK + the bundled Linux toolchain (ext4, for symlinks)
@@ -40,7 +40,7 @@ chmod +x ~/ec600m/sdk/ql-sdk/ql-cross-tool/Linux/CRC64 \
          ~/ec600m/sdk/ql-sdk/ql-cross-tool/Linux/*.sh
 
 # 2. stage this repo's sources + build the bundled libs into interface/ts3/
-ports/quecopen/sdk-integration/stage.sh ~/ec600m/sdk/ql-sdk/ql-application/threadx
+ports/quecopen-ec600m/sdk-integration/stage.sh ~/ec600m/sdk/ql-sdk/ql-application/threadx
 
 # 3. build only our interface, linking only ql_common_api (override on the command line —
 #    the SDK makefiles are left untouched)
@@ -55,7 +55,7 @@ make PLATFORM=linux COMMPILE_DIRS="interface/ts3" DEFAULT_LIBS="common/lib/ql_co
   or it takes the top-level branch and fails with `No rule to make target '…/target_compile_dir'`.
 - Put our mbedTLS 3.6 `-I` **before** `common/include` — the SDK ships mbedTLS 2.16 headers under
   `common/include/mbedtls`, which otherwise shadow ours.
-- Staged `.cpp` include our headers flat (`"port.h"`), not `"../../src/port.h"`; `stage.sh` rewrites this.
+- `stage.sh` stages `core/`, `protocols/ts3/`, the port and the ed25519 sources flat into `interface/ts3/`; the sources include `"port.h"` and `"ts3.h"` without paths, so nothing is rewritten.
 - DNS: the SDK's lwIP exports `gethostbyname` / `getaddrinfo_with_pcid`, not plain `getaddrinfo`.
   `port_quecopen.cpp` uses `gethostbyname`.
 - The bundled `CRC64` and `arelease.sh` come out of the zip without the execute bit — `chmod +x` them.

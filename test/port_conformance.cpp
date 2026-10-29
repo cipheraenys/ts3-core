@@ -1,4 +1,4 @@
-// Conformance checks for an implementation of src/port.h. See docs/PORT_CONTRACT.md.
+// Conformance checks for an implementation of core/port.h. See docs/PORT_CONTRACT.md.
 // Copyright (c) 2026 cipheraenys@gmail.com, MIT license.
 //
 // Depends only on port.h, so it links against any port. Output goes through port_log, not stdio,
@@ -8,7 +8,7 @@
 #include <cstddef>
 #include <cstring>
 
-#include "../src/port.h"
+#include "port.h"
 
 static int g_checks, g_fail;
 
@@ -101,7 +101,7 @@ static void test_echo(const char *host, uint16_t port, void (*service)(void)) {
     int s = port_udp_open(host, port);
     CHECK(s >= 0);
     if (s < 0) return;
-    // 500 is the core's largest datagram (MAX_PKT in src/ts3.cpp).
+    // 500 is the core's largest datagram (MAX_PKT in protocols/ts3/ts3.cpp).
     CHECK(echo_one(s, 1, service, 1));
     CHECK(echo_one(s, 100, service, 2));
     CHECK(echo_one(s, 500, service, 3));

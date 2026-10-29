@@ -1,5 +1,5 @@
 // PC implementation of port.h (Windows/MinGW or POSIX). For development and testing only.
-#include "../src/port.h"
+#include "port.h"
 
 #include <chrono>
 #include <cstdarg>

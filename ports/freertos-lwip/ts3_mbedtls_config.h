@@ -1,4 +1,4 @@
-// Minimal mbedTLS 3.6 config: only what src/crypto.cpp uses. Reuse this on the device.
+// Minimal mbedTLS 3.6 config: only what core/crypto.cpp uses. Reuse this on the device.
 #pragma once
 
 #define MBEDTLS_AES_C

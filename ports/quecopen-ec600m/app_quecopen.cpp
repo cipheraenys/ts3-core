@@ -1,6 +1,6 @@
 // TS3 client app for Quectel EC600M (QuecOpen OCPU, ASR1606 / Cortex-R4).
 // Radio behaviour: hold PTT -> mic -> Opus -> TS3 voice; incoming TS3 voice -> Opus -> speaker.
-// Half duplex, like the vendor PoC app. Mirrors rtos/freertos_qemu/app.cpp but on real hardware.
+// Half duplex, like the vendor PoC app. Mirrors ports/freertos-lwip/app.cpp but on real hardware.
 //
 // Verified against the EC600M QuecOpen C-SDK (LTE01R06..AIRTC):
 //   ql_data_call.h  ql_start_data_call / ql_set_auto_connect
@@ -24,8 +24,8 @@ extern "C" {
 #include "ql_audio.h"
 }
 
-#include "../../src/port.h"
-#include "../../src/ts3.h"
+#include "port.h"
+#include "ts3.h"
 
 #ifndef TS3_HOST
 #define TS3_HOST "ts3.example.com"   // TODO(deploy): your TeamSpeak server (IP or host)

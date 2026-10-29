@@ -1,6 +1,6 @@
 # Port: Quectel EC600M (QuecOpen OCPU)
 
-Implements `src/port.h` for EC600M-class modules (ASR1606, Cortex-R4, ThreadX) with the QuecOpen C-SDK. Contract: [docs/PORT_CONTRACT.md](../../docs/PORT_CONTRACT.md).
+Implements `core/port.h` for EC600M-class modules (ASR1606, Cortex-R4, ThreadX) with the QuecOpen C-SDK. Contract: [docs/PORT_CONTRACT.md](../../docs/PORT_CONTRACT.md).
 
 | `port.h` | Implemented with |
 |---|---|

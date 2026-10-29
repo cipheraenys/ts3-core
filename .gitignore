@@ -1,0 +1,27 @@
+# build outputs
+out/
+build/
+rtos/**/build/
+ports/**/build/
+*.o
+*.obj
+*.axf
+*.elf
+*.map
+
+# device dumps / secrets
+hw/
+identity*.txt
+id_*.txt
+
+# runtime artifacts
+*.wav
+qemu*.log
+log_*.txt
+
+# editors / OS
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db

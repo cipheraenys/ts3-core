@@ -21,8 +21,6 @@ ports/                one directory per target, each implements core/port.h
   freertos-lwip/      FreeRTOS + FreeRTOS+TCP on QEMU mps2-an385
   quecopen-ec600m/    Quectel EC600M, QuecOpen C-SDK (port, app, SDK integration, BUILD.md)
   example/            template port
-targets/              devices that are not a port.h implementation
-  bq280-quecpython/   BQ280 handheld on QuecPython: hardware notes
 test/                 selftest (tsclientlib vectors), port_conformance (checks a port.h implementation)
 docs/                 PORT_CONTRACT.md, PORTING.md
 third_party/          git submodules: mbedtls, opus, ed25519

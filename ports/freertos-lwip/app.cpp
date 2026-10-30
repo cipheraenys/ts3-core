@@ -50,7 +50,7 @@ static void on_voice(void *, uint16_t clid, uint8_t codec, const uint8_t *opus, 
         if (echoed++ % 50 == 0) port_log("echo: %u frames", echoed);
         echoing = true;
     } else if (!echoing) {
-        return;  // only forward a PTT release for a burst we actually echoed
+        return;  // forward a PTT release only for an echoed burst
     } else {
         echoing = false;
     }
@@ -75,7 +75,7 @@ static void on_command(void *, const char *cmd) {
     if (!strncmp(cmd, "notifycliententerview", 21) && ts3_arg(cmd, "clid", v, sizeof v) &&
         atoi(v) == client.client_id() && ts3_arg(cmd, "ctid", v, sizeof v)) {
         my_channel = (uint16_t)atoi(v);
-        say("RTOS-Echo online (FreeRTOS, Cortex-M3). Bicara = aku pantulkan. Ketik !talk = aku yang bicara.");
+        say("RTOS-Echo online (FreeRTOS, Cortex-M3). Talk and I echo it; type !talk and I talk.");
     } else if (!strncmp(cmd, "notifytextmessage", 17) && ts3_arg(cmd, "msg", v, sizeof v) && !strcmp(v, "!talk")) {
         talk_requested = true;
     }
@@ -153,7 +153,7 @@ extern "C" eDHCPCallbackAnswer_t xApplicationDHCPHook_Multi(eDHCPCallbackPhase_t
     return eDHCPContinue;
 }
 
-// The stock demo's network-up hook calls this; we start the TS3 task instead of the TCP echo client.
+// The stock demo's network-up hook calls this; it starts the TS3 task instead of the TCP echo client.
 extern "C" void vStartTCPEchoClientTasks_SingleTasks(uint16_t, UBaseType_t prio) {
-    xTaskCreate(ts3_task, "ts3", 16384, nullptr, prio, nullptr);  // 64 KB stack (Opus encoder needs it)
+    xTaskCreate(ts3_task, "ts3", 16384, nullptr, prio, nullptr);  // 64 KB stack (16384 words); unmeasured
 }

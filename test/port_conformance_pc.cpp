@@ -1,7 +1,6 @@
 // Host runner for port_conformance.cpp: runs it against an in-process UDP echo peer on 127.0.0.1.
 //   port_conformance                 local peer (what ctest runs)
 //   port_conformance HOST PORT       external UDP echo peer
-// Copyright (c) 2026 cipheraenys@gmail.com, MIT license.
 #include <cstdio>
 #include <cstdlib>
 

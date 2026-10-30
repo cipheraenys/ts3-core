@@ -1,6 +1,6 @@
 // Minimal TeamSpeak 3 client: handshake, commands, ping, voice packets.
 // Single-threaded: call poll() from one task, and send_*() from that same task.
-// Audio codec is NOT in here — hand it Opus frames, get Opus frames back.
+// No audio codec: send_voice() takes Opus frames, on_voice delivers Opus frames.
 #pragma once
 #include <cstddef>
 #include <cstdint>

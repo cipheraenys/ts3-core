@@ -2,7 +2,7 @@
 
 A port is one C++ file that defines the eight functions in `core/port.h`, plus a README saying what was implemented and what was actually run. The contract is [docs/PORT_CONTRACT.md](../docs/PORT_CONTRACT.md); `test/port_conformance.cpp` checks what can be checked.
 
-Every port lives in `ports/<target>/` with a `port_<target>.cpp`. Sources include `"port.h"` and `"ts3.h"` without a path; each build adds `-I core -I protocols/ts3`.
+Every port lives in `ports/<dir>/` with one `port_<name>.cpp`. Sources include `"port.h"` and `"ts3.h"` without a path; each build adds `-I core -I protocols/ts3`.
 
 | `-DTS3_PORT=` | File | Transport | Build | Status |
 |---|---|---|---|---|
@@ -11,7 +11,7 @@ Every port lives in `ports/<target>/` with a `port_<target>.cpp`. Sources includ
 | `quecopen` | `ports/quecopen-ec600m/port_quecopen.cpp` | lwIP sockets (QuecOpen SDK) | `ports/quecopen-ec600m/BUILD.md` | builds and links; not run on hardware |
 | `stub` | `ports/example/port_stub.cpp` | none | CMake | template; compiles, does nothing |
 
-CMake: `cmake -S . -B build -DTS3_PORT=pc` (default). `pc` and `stub` build `selftest` and `port_conformance` for the host. `freertos` and `quecopen` build only `libts3c_port.a`; they need a cross toolchain and the RTOS/SDK headers (`-DCMAKE_TOOLCHAIN_FILE=...`, `-DTS3_PORT_INCLUDE_DIRS="dir1;dir2"`). The real firmware builds stay with their own makefiles.
+CMake: `cmake -S . -B build -DTS3_PORT=pc` (default). `pc` and `stub` build `selftest` and `port_conformance` for the host. `freertos` and `quecopen` build the static libraries only (no tests, no CLI); they need a cross toolchain, the RTOS/SDK headers and a cross-built mbedTLS (`-DCMAKE_TOOLCHAIN_FILE=...`, `-DTS3_PORT_INCLUDE_DIRS="dir1;dir2"`, `-DMBEDTLS_INCLUDE_DIR`, `-DMBEDCRYPTO_LIBRARY`). The real firmware builds stay with their own makefiles.
 
 ## pc
 
@@ -28,11 +28,11 @@ python3 -c "import socket; s=socket.socket(2,2); s.bind(('0.0.0.0',7777))
 while True: d,a=s.recvfrom(4096); s.sendto(d,a)"
 ```
 
-Observed over 3 runs of the final test: `port_conformance: 33 checks, 0 failed` twice (once after a boundary-check retry), and once the two-datagram boundary check failed all 3 attempts (the second datagram never came back). The cause was not investigated; the QEMU LAN9118/slirp path, FreeRTOS+TCP ARP handling and the port are all candidates. Treat this port as "conformance passes intermittently". The test retries up to 3 times because FreeRTOS+TCP drops datagrams sent while it is still resolving the peer's MAC address by ARP; the core tolerates that through its own retransmits.
+Conformance passes intermittently: of 3 runs, two reported `33 checks, 0 failed` (one after a boundary-check retry), and in one the two-datagram boundary check failed all 3 attempts. Cause not investigated (QEMU LAN9118/slirp, FreeRTOS+TCP ARP, or the port). The test retries up to 3 times because FreeRTOS+TCP drops datagrams sent while it resolves the peer's MAC by ARP.
 
 Deviations from the contract:
 
-- `port_random` is the demo's `xApplicationGetRandomNumber`, an LCG seeded from the tick count at boot (the log line `Seed for randomiser: 32` appeared in the boot we looked at), mixed with the current tick. The seed is a boot-time tick count, a tiny search space, so the output is guessable. It passes the conformance statistics anyway; see the contract for why that proves nothing. Replace it with the SoC TRNG before any use outside QEMU.
+- `port_random` is the demo's `xApplicationGetRandomNumber`: an LCG seeded from the boot-time tick count (one boot logged `Seed for randomiser: 32`) and mixed with the current tick, so its output is guessable. It passes the conformance statistics anyway (see the contract). Replace it with a hardware TRNG before any use outside QEMU.
 - `port_unix_time` is the build time plus uptime, not a clock.
 - `port_udp_open` takes dotted IPv4 only, at most 4 sockets, and `port_udp_recv` does not check the datagram's source address.
 
@@ -46,9 +46,6 @@ See [example/README.md](example/README.md).
 
 ## Adding a port
 
-1. Copy `ports/example/port_stub.cpp` to `ports/<target>/port_<target>.cpp`.
-2. Implement it against the contract and run `port_conformance` (host runner, or `port_conformance_run()` from a task on the device).
-3. Add `ports/<target>/README.md` (implemented with, build, what was run, deviations) and a row to the table above.
-4. If it builds from CMake, add a `TS3_PORT` value in the top-level `CMakeLists.txt`.
+Follow [docs/PORTING.md](../docs/PORTING.md). Then add `ports/<dir>/README.md` (implemented with, build, what was run, deviations), a row to the table above and, if it builds from CMake, a `TS3_PORT` value in the top-level `CMakeLists.txt`.
 
 A port is listed as "tested" only after the conformance test and the self-test ran on it. Anything else is "builds" or "template".

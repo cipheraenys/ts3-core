@@ -1,7 +1,5 @@
 # Port contract: `core/port.h`
 
-Copyright (c) 2026 cipheraenys@gmail.com, MIT license.
-
 `core/port.h` declares the eight functions the core (`protocols/ts3/ts3.cpp`, `core/crypto.cpp`) calls to reach the outside world. Anything that implements them can run the core. This file says what "implements" means; `test/port_conformance.cpp` checks the parts that can be checked.
 
 Words in capitals follow [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119).
@@ -24,7 +22,7 @@ Creates a UDP socket whose peer is `host:port`.
 - "Connected" semantics: `send` goes to the peer, and the port SHOULD discard datagrams from other sources. POSIX `connect()` on a `SOCK_DGRAM` socket does both ([POSIX connect](https://pubs.opengroup.org/onlinepubs/9699919799/functions/connect.html)). A port that only calls `sendto`/`recvfrom` (the FreeRTOS port) is still correct: the core authenticates every packet with EAX, so foreign datagrams are dropped by the crypto, at the cost of CPU.
 - MUST be callable repeatedly: the core closes and reopens the socket on an init restart (`ts3.cpp:318`). Closed handles MUST become reusable, so a fixed-size table does not leak.
 - At least one handle MUST be open at a time. The core uses exactly one.
-- The network may not be up yet. Returning `< 0` is correct then; the core logs it and `connect()` fails. (On QuecOpen the data call must exist first, see `ports/quecopen-ec600m/BUILD.md`.)
+- The network may not be up yet. Returning `< 0` is correct then; the core logs it and `connect()` fails. (On QuecOpen the data call must exist first, see `ports/quecopen-ec600m/README.md`.)
 
 ## `void port_udp_close(int s)`
 
@@ -70,7 +68,7 @@ Milliseconds from a monotonic clock, arbitrary origin (boot is fine), wrapping a
 
 Seconds since 1970-01-01T00:00:00 UTC, excluding leap seconds ([POSIX "Seconds Since the Epoch"](https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap04.html#tag_04_19)). Wall time, so it MAY jump (NTP, NITZ).
 
-- The core reads it once per `connect()`, puts it into the first handshake packet and derives `version_ = now - 1356998400` from it (`ts3.cpp:85-89`). It does not check the value locally (license expiry is not checked, see README). What a given server does with a wrong timestamp was not tested here.
+- The core reads it once per `connect()`, puts it into the first handshake packet and derives `version_ = now - 1356998400` from it (`ts3.cpp:85-89`). It does not check the value locally (license expiry is not checked, see README). Server behavior with a wrong timestamp is untested.
 - If no real time is available (RTC unset, cellular network time not yet received), return a best-effort value such as build time plus uptime, as `port_freertos.cpp` does. Returning `0` is possible but makes `version_` wrap as an unsigned subtraction; `port_conformance` fails it (it requires a value after 2025-01-01).
 - The conformance bound (2025-01-01) is a "clock is set at all" check, not an accuracy check.
 
@@ -78,7 +76,7 @@ Seconds since 1970-01-01T00:00:00 UTC, excluding leap seconds ([POSIX "Seconds S
 
 Fills exactly `len` bytes of `buf` with output from a cryptographically secure source seeded by real entropy: a hardware TRNG, or the OS CSPRNG (`getrandom(2)`, `BCryptGenRandom`, ...).
 
-**Why this is not optional.** The core takes all key material from here:
+The core takes all key material from here:
 
 | Use | Where |
 |---|---|
@@ -86,7 +84,7 @@ Fills exactly `len` bytes of `buf` with output from a cryptographically secure s
 | long-term P-256 identity key (`mbedtls_ecp_gen_key`) and ECDSA blinding/nonces (`rng` callback) | `crypto.cpp:224-270` |
 | handshake nonces `random0_`, `alpha_` | `ts3.cpp:87`, `ts3.cpp:337` |
 
-If an attacker can enumerate the generator's outputs, they can recompute the ephemeral private key from a captured handshake and with it the session keys (decrypt and forge traffic); a guessable identity key lets them impersonate the device; and ECDSA signing with predictable nonces leaks the signing key (mbedTLS draws the nonce from the RNG callback unless built with `MBEDTLS_ECDSA_DETERMINISTIC`). A PRNG seeded from a boot-time tick count has a search space of a few thousand values and, on a deterministic boot, may repeat the same keys. This class of failure is catalogued as [CWE-338](https://cwe.mitre.org/data/definitions/338.html) and [CWE-330](https://cwe.mitre.org/data/definitions/330.html), and has happened in practice: [Debian's OpenSSL generator was reduced to a few thousand possible keys (DSA-1571)](https://www.debian.org/security/2008/dsa-1571), and [embedded devices generated duplicate or factorable keys at first boot](https://factorable.net/paper.html). Requirements for entropy sources are in [NIST SP 800-90B](https://csrc.nist.gov/pubs/sp/800/90/b/final) and [RFC 4086](https://www.rfc-editor.org/rfc/rfc4086).
+A predictable generator lets an attacker recompute the ephemeral key from a captured handshake (and with it the session keys), guess the identity key, or recover it from predictable ECDSA nonces (mbedTLS draws them from the RNG callback unless built with `MBEDTLS_ECDSA_DETERMINISTIC`). A PRNG seeded from a boot-time tick count has a few thousand states and can repeat keys across boots. See [CWE-338](https://cwe.mitre.org/data/definitions/338.html), [CWE-330](https://cwe.mitre.org/data/definitions/330.html), [DSA-1571](https://www.debian.org/security/2008/dsa-1571), [factorable.net](https://factorable.net/paper.html), [NIST SP 800-90B](https://csrc.nist.gov/pubs/sp/800/90/b/final), [RFC 4086](https://www.rfc-editor.org/rfc/rfc4086).
 
 - The signature has no error channel. If the source fails or is not ready, block, reset or halt. Never return with `buf` unfilled or filled from a fallback PRNG.
 - `len == 0` writes nothing. `buf` may be unaligned. The core's own calls ask for 4 to 64 bytes; mbedTLS chooses the sizes for its callback.
@@ -100,7 +98,7 @@ The conformance test runs statistical sanity checks (byte distribution, bit bala
 printf-style diagnostics, one line per call.
 
 - The port appends the newline; callers do not.
-- `fmt` is always a string literal in this repo. Formats used: `%d %u %x %c %s` and `%.Ns` (`ports/pc/main.cpp:74`). `%llu` and `%lld` MUST NOT be used by callers: newlib-nano's printf does not support them ([newlib mailing list](https://sourceware.org/pipermail/newlib/2026/022568.html), [newlib nano-formatted-io note](https://sourceware.org/legacy-ml/newlib/2014/msg00169.html)); use `ts3c::u64_dec()`.
+- `fmt` is always a string literal in this repo. Formats used: `%d %u %x %c %s`, `%.Ns` (`ports/pc/main.cpp:74`, `ports/freertos-lwip/app.cpp:84`), `%02u` (`app.cpp:130`), `%.1f` (`ports/pc/main.cpp:151`, PC only). `%llu` and `%lld` MUST NOT be used by callers: newlib-nano's printf does not support them ([newlib mailing list](https://sourceware.org/pipermail/newlib/2026/022568.html), [newlib nano-formatted-io note](https://sourceware.org/legacy-ml/newlib/2014/msg00169.html)); use `ts3c::u64_dec()`.
 - Output MAY be truncated (`port_quecopen.cpp` formats into 256 bytes) but MUST NOT overflow a buffer. Output MAY be dropped entirely (the stub does).
 - It is called during start-up before the network exists, so it must not depend on a socket.
 
@@ -123,7 +121,7 @@ Not covered: entropy quality, RTC accuracy, 32-bit wrap behavior, behavior under
 Host-like target (a POSIX or Winsock port), from the repo root:
 
 ```sh
-g++ -std=c++17 test/port_conformance.cpp test/port_conformance_pc.cpp path/to/port_x.cpp -o port_conformance && ./port_conformance
+g++ -std=c++17 test/port_conformance.cpp test/port_conformance_pc.cpp path/to/port_x.cpp -o port_conformance && ./port_conformance   # MinGW: add -lws2_32
 ```
 
 `port_conformance_pc.cpp` starts its own UDP echo peer on `127.0.0.1`. With `./port_conformance HOST PORT` it uses an external echo server instead.

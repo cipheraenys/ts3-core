@@ -1,6 +1,6 @@
 // PC test client. Same core the device runs; audio here is a test tone in, WAV file out.
-//   ts3cli <host> [-p port] [-n nick] [-c channel] [-i identity.txt] [-t seconds]
-//          [--tone seconds] [--rx out.wav] [-L hashcash_level] [--say "channel chat text"]
+//   ts3cli <host> [-p port] [-n nick] [-c channel] [-i identity.txt] [-t secs]
+//          [--tone secs] [--rx out.wav] [-L hashcash_level] [--say "channel chat text"]
 #include <opus/opus.h>
 
 #include <cmath>
@@ -77,7 +77,7 @@ static void on_command(void *, const char *cmd) {
 int main(int argc, char **argv) {
     if (argc < 2) {
         fprintf(stderr, "usage: %s <host> [-p port] [-n nick] [-c channel] [-i identity.txt] [-t secs]"
-                        " [--tone secs] [--rx out.wav] [-L level]\n", argv[0]);
+                        " [--tone secs] [--rx out.wav] [-L level] [--say text]\n", argv[0]);
         return 2;
     }
     Ts3Config cfg;

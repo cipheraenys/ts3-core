@@ -1,5 +1,4 @@
-// Platform layer. The only file that differs per chip/RTOS.
-// Implement these for your target (lwIP sockets, RTOS tick, hardware RNG).
+// Platform seam: each port implements these (ports/*/port_*.cpp); the core includes no platform headers.
 #pragma once
 #include <cstddef>
 #include <cstdint>

@@ -220,7 +220,7 @@ bool Ts3Client::send_voice(const uint8_t *opus, size_t len, uint8_t codec) {
     put16(b, out_pid_[VOICE]);
     b[2] = codec;
     if (len) memcpy(b + 3, opus, len);
-    // ponytail: voice is sent unencrypted (server default "per channel", unencrypted).
+    // ponytail: voice sent unencrypted (server default); channels that force voice encryption need REAL.
     return send_packet(VOICE, 0, b, 3 + len, PLAIN, false);
 }
 

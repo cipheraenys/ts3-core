@@ -1,4 +1,4 @@
-# Optional, portable build. build.sh and ports/freertos-lwip/Makefile remain supported and independent.
+# Portable build. build.sh and ports/freertos-lwip/Makefile are independent alternatives.
 #   cmake -S . -B build && cmake --build build && ctest --test-dir build
 # Port selection: -DTS3_PORT=pc|freertos|quecopen|stub (default pc). See ports/README.md.
 # Needs: git submodule update --init third_party/ed25519
@@ -40,7 +40,7 @@ if(NOT (TS3_PORT STREQUAL "pc" OR TS3_PORT STREQUAL "stub"))
   set(TS3C_BUILD_TESTS OFF)
 endif()
 
-# ---- dependencies: mbedTLS 3.x ----
+# ---- dependencies: mbedTLS 3.6+ ----
 find_package(MbedTLS CONFIG QUIET)
 if(TARGET MbedTLS::mbedcrypto)
   set(TS3C_MBEDCRYPTO MbedTLS::mbedcrypto)
@@ -48,7 +48,7 @@ else()
   find_library(MBEDCRYPTO_LIBRARY NAMES mbedcrypto)
   find_path(MBEDTLS_INCLUDE_DIR NAMES mbedtls/build_info.h)  # only exists in mbedTLS 3.x
   if(NOT MBEDCRYPTO_LIBRARY OR NOT MBEDTLS_INCLUDE_DIR)
-    message(FATAL_ERROR "mbedTLS 3.x (libmbedcrypto + mbedtls/build_info.h) not found. "
+    message(FATAL_ERROR "mbedTLS 3.6+ (libmbedcrypto + mbedtls/build_info.h) not found. "
                         "Set -DMBEDTLS_INCLUDE_DIR=... -DMBEDCRYPTO_LIBRARY=... or CMAKE_PREFIX_PATH.")
   endif()
   add_library(ts3c_mbedcrypto UNKNOWN IMPORTED)

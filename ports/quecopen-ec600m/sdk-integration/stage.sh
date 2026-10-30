@@ -1,5 +1,5 @@
 #!/bin/sh
-# Stage TS3-RTOS into a QuecOpen SDK as interface/ts3/ and build the bundled Opus + mbedTLS 3.6
+# Stage ts3-core into a QuecOpen SDK as interface/ts3/ and build the bundled Opus + mbedTLS 3.6
 # static libs for Cortex-R4. After this, build from the SDK's threadx dir (see BUILD.md):
 #   make PLATFORM=linux COMMPILE_DIRS="interface/ts3" DEFAULT_LIBS="common/lib/ql_common_api.lib"
 #

@@ -4,10 +4,7 @@
 
 ## Use
 
-1. Copy it to `ports/<target>/port_<target>.cpp` (or next to your RTOS app) and replace each body, following [docs/PORT_CONTRACT.md](../../docs/PORT_CONTRACT.md).
-2. Run `test/port_conformance.cpp` against it (instructions at the end of the contract). Every check must pass.
-3. Review `port_random` and `port_unix_time` by hand: the test cannot prove entropy or clock accuracy.
-4. Add `ports/<target>/README.md` with what is implemented, how to build, and what was actually run.
+Copy it to `ports/<dir>/port_<name>.cpp` and follow [docs/PORTING.md](../../docs/PORTING.md).
 
 ## State of the template
 

@@ -35,7 +35,7 @@ void sha512(const void *d, size_t n, uint8_t out[64]) { mbedtls_sha512((const ui
 // ---- EAX: tag = OMAC0(nonce) ^ OMAC1(ad) ^ OMAC2(ciphertext) ----
 
 static void omac(const uint8_t key[16], uint8_t t, const uint8_t *m, size_t n, uint8_t out[16]) {
-    // ponytail: copies into a stack buffer; TS3 packets are <= 500 bytes.
+    // ponytail: 512-byte stack buffer, longer input is silently truncated; TS3 packets are <= 500 bytes.
     uint8_t buf[16 + 512] = {0};
     buf[15] = t;
     if (n > 512) n = 512;

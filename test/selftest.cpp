@@ -1,4 +1,4 @@
-// Crypto self-test against tsclientlib's known-good vectors. Run on PC and on the device.
+// Crypto self-test against tsclientlib's known-good vectors. Runs on PC and in the QEMU FreeRTOS demo; not yet run on EC600M.
 #include <cassert>
 #include <cstdio>
 #include <cstring>

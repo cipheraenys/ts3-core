@@ -15,7 +15,7 @@ jobs:
       # mbedtls/opus submodules are not needed here: the PC build links the system libraries.
       - name: ed25519 submodule
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE" && git submodule update --init third_party/ed25519
-      - name: build.sh + selftest
+      - name: build.sh + selftest + port_conformance
         run: sh build.sh && ./out/selftest && ./out/port_conformance
       - name: CMake build + ctest
         run: |

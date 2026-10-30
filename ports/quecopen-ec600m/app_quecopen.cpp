@@ -1,9 +1,9 @@
 // TS3 client app for Quectel EC600M (QuecOpen OCPU, ASR1606 / Cortex-R4).
-// Radio behaviour: hold PTT -> mic -> Opus -> TS3 voice; incoming TS3 voice -> Opus -> speaker.
-// Half duplex, like the vendor PoC app. Mirrors ports/freertos-lwip/app.cpp but on real hardware.
+// Radio behavior: hold PTT -> mic -> Opus -> TS3 voice; incoming TS3 voice -> Opus -> speaker.
+// Half duplex, like the vendor PoC app. Mirrors ports/freertos-lwip/app.cpp. Not run on hardware.
 //
-// Verified against the EC600M QuecOpen C-SDK (LTE01R06..AIRTC):
-//   ql_data_call.h  ql_start_data_call / ql_set_auto_connect
+// Compiles and links against the EC600M QuecOpen C-SDK (LTE01R06A01_AIRTC_C_SDK_A_BETA0212):
+//   ql_data_call.h  ql_start_data_call
 //   ql_adc.h        ql_adc_init / ql_adc_read (PTT = ADC channel 1, resistor ladder)
 //   ql_audio.h      ql_codec_choose / ql_set_audio_path_receiver / ql_set_volume /
 //                   ql_audio_record_open/read / ql_audio_track_open/write
@@ -42,7 +42,7 @@ static audio_record_handle mic;
 static audio_track_handle spk;
 
 // Incoming voice: decode to PCM and push to the speaker. opus_decode output is bounded by the
-// frame size we ask for; kFrame*6 covers the largest Opus frame (120 ms) safely.
+// frame size we ask for; kFrame*6 covers the largest Opus frame (120 ms).
 static void on_voice(void *, uint16_t clid, uint8_t codec, const uint8_t *opus, size_t len) {
     (void)clid;
     if (talking) return;            // half duplex
@@ -53,9 +53,10 @@ static void on_voice(void *, uint16_t clid, uint8_t codec, const uint8_t *opus, 
     if (n > 0) ql_audio_track_write(spk, (char *)pcm, (unsigned)n * 2);
 }
 
-// PTT is on ADC channel 1 (resistor ladder), not the power key: idle reads ~1201,
-// pressed ~493. Poll it; a reading below the midpoint means held. Retune per board.
-static const unsigned kPttThreshold = (1201 + 493) / 2;   // ~847
+// PTT is on ADC channel 1 (resistor ladder), not the power key. QuecPython ADC: 1201 idle (verified),
+// ~493 pressed (unverified); ql_adc_read is assumed to use the same scale. Below the midpoint = held.
+// Retune on device.
+static const unsigned kPttThreshold = (1201 + 493) / 2;   // 847
 static bool ptt_is_down(void) {
     unsigned short v = 0xFFFF;
     return ql_adc_read(ADC_CHANNEL_ADC1, &v) == ADC_READ_SUCCESS && v < kPttThreshold;
@@ -95,7 +96,7 @@ static void ts3_entry(void *) {
             client.poll(talking ? 2 : 10);
             if (client.state() != Ts3Client::Connected) continue;
 
-            bool ptt_down = ptt_is_down();      // poll ADC ch1 each active iteration
+            bool ptt_down = ptt_is_down();
             if (ptt_down && !talking) talking = true;
             if (talking) {
                 int16_t frame[kFrame];
@@ -116,7 +117,6 @@ static void ts3_entry(void *) {
     }
 }
 
-// Register with the SDK loader (the _appRegTable_ seen in the vendor image). This macro declares
-// a table entry in a dedicated section, so it MUST be at file scope, not inside a function.
-// 32 KiB stack: the Opus encoder is the hungriest caller. TODO(deploy): tune after measuring.
+// application_init() adds an entry to the SDK's .appRegTable section, so it MUST be at file scope.
+// 32 KiB stack; unmeasured.
 application_init(ts3_entry, "ts3", 32, 0);

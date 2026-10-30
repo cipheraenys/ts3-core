@@ -1,5 +1,4 @@
 // Conformance checks for an implementation of core/port.h. See docs/PORT_CONTRACT.md.
-// Copyright (c) 2026 cipheraenys@gmail.com, MIT license.
 //
 // Depends only on port.h, so it links against any port. Output goes through port_log, not stdio,
 // because some targets have no stdout until the port works.

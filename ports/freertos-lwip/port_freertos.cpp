@@ -1,4 +1,4 @@
-// port.h on FreeRTOS + FreeRTOS+TCP. Template for real devices: swap time/random for RTC + TRNG.
+// port.h on FreeRTOS + FreeRTOS+TCP (QEMU mps2-an385).
 #include <cstdarg>
 #include <cstdio>
 #include <ctime>

@@ -14,8 +14,8 @@ Files: `port_quecopen.cpp` (the port), `app_quecopen.cpp` (PTT + audio + Opus lo
 
 ## Status
 
-- Builds and links into `app.bin` against SDK `LTE01R06A01_AIRTC_C_SDK_A_BETA0212` (per `BUILD.md`).
-- Not run on hardware. Nothing in this directory has been executed on an EC600M, and `test/port_conformance.cpp` has not been run on this port.
+- Builds and links into `app.bin` (296,732 bytes) against SDK `LTE01R06A01_AIRTC_C_SDK_A_BETA0212` (per `BUILD.md`).
+- Not run on hardware; `test/port_conformance.cpp` has not been run on this port.
 
 ## Known gaps against the contract
 
@@ -26,7 +26,7 @@ Files: `port_quecopen.cpp` (the port), `app_quecopen.cpp` (PTT + audio + Opus lo
 ## Build
 
 - Full firmware: `BUILD.md`.
-- Library only, for a syntax/link check from CMake: `cmake -S . -B build -DTS3_PORT=quecopen -DCMAKE_TOOLCHAIN_FILE=<arm-none-eabi toolchain> -DTS3_PORT_INCLUDE_DIRS="<sdk>/common/include;<sdk>/common/include/lwipv4v6"`. This produces `libts3c_port.a` only and was not run against the SDK.
+- Library only, for a syntax/link check from CMake: `cmake -S . -B build -DTS3_PORT=quecopen -DCMAKE_TOOLCHAIN_FILE=<arm-none-eabi toolchain> -DTS3_PORT_INCLUDE_DIRS="<sdk>/common/include;<sdk>/common/include/lwipv4v6"`. Builds the static libraries only; needs a cross-built mbedTLS via `-DMBEDTLS_INCLUDE_DIR`/`-DMBEDCRYPTO_LIBRARY`. Not tried against the SDK.
 
 ## Run the conformance test on the module
 

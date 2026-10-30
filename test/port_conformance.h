@@ -1,5 +1,4 @@
 // Conformance checks for an implementation of core/port.h. See docs/PORT_CONTRACT.md.
-// Copyright (c) 2026 cipheraenys@gmail.com, MIT license.
 #pragma once
 #include <cstdint>
 

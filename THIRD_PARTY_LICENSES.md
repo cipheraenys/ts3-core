@@ -1,8 +1,8 @@
 # Third-party licenses
 
-The project's own code (`core/`, `protocols/`, `ports/`, `targets/`, `test/`, `docs/`) is MIT, see `LICENSE`.
-Third-party works below keep their own licenses and copyrights; nothing here claims ownership of them.
-The submodules are not copied into this repository: each is pinned to the commit shown and carries its own license file.
+The project's own code (`core/`, `protocols/`, `ports/`, `test/`, `docs/`) is MIT, see `LICENSE`.
+Third-party works below keep their own licenses and copyrights.
+The submodules are not copied into this repository: each is pinned to the commit or tag shown and carries its own license file.
 
 | Component | Where | License | Notes |
 |---|---|---|---|
@@ -11,7 +11,7 @@ The submodules are not copied into this repository: each is pinned to the commit
 | Opus (libopus) | `third_party/opus/` (git submodule, `v1.5.2`) | BSD-3-Clause | Built from source by the RTOS/QuecOpen ports; the PC build links a system install. |
 | tsclientlib / tsdeclarations (ReSpeak) | protocol reference; test vectors in `test/selftest.cpp`; QuickLZ decompressor in `core/crypto.cpp` is a port of ReSpeak/quicklz | MIT or Apache-2.0 | Used as specification and for test vectors. Upstream: https://github.com/ReSpeak |
 | FreeRTOS, FreeRTOS-Plus-TCP | external, only for `ports/freertos-lwip` | MIT | Not vendored; fetched into `~/ts3deps`. |
-| QuecOpen C-SDK, QuecPython | vendor downloads, not in this repository | Quectel terms | Used only by `ports/quecopen-ec600m` and `targets/bq280-quecpython`. |
+| QuecOpen C-SDK | vendor download, not in this repository | Quectel terms | Used only by `ports/quecopen-ec600m`. |
 
 ## orlp/ed25519 (zlib)
 

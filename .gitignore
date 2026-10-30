@@ -1,8 +1,6 @@
 # build outputs
 out/
 build/
-rtos/**/build/
-ports/**/build/
 *.o
 *.obj
 *.axf

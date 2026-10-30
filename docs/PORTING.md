@@ -12,12 +12,10 @@ Start from `ports/example/port_stub.cpp` (compiles, returns neutral values) or a
 | `port_udp_send(s, buf, len)` | send one datagram | `send()` |
 | `port_udp_recv(s, buf, len, timeout_ms)` | bytes read, 0 on timeout, < 0 on error | `select()` / `SO_RCVTIMEO` |
 | `port_udp_close(s)` | close | `close()` |
-| `port_millis()` | monotonic ms, 32-bit wrap OK | RTOS tick |
-| `port_unix_time()` | seconds since epoch (license validity, handshake) | RTC / NTP / cell network time |
+| `port_millis()` | monotonic ms; wraps at 2^32 (see contract) | RTOS tick |
+| `port_unix_time()` | seconds since epoch (Init1 timestamp; license expiry is not checked) | RTC / NTP / cell network time |
 | `port_random(buf, len)` | must be real entropy on device | hardware TRNG |
 | `port_log(fmt, ...)` | printf-style log | UART / RTT |
-
-Gotcha: newlib-nano `printf` has no `%llu`; use `ts3c::u64_dec()` for 64-bit numbers.
 
 ## 2. Build
 

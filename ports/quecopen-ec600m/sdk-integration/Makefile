@@ -1,10 +1,10 @@
-# interface/ts3/Makefile — TS3-RTOS client as a QuecOpen OCPU app (EC600M / ASR1606 / Cortex-R4).
+# interface/ts3/Makefile — ts3-core client as a QuecOpen OCPU app (EC600M / ASR1606 / Cortex-R4).
 #
 # stage.sh writes this into <SDK>/ql-application/threadx/interface/ts3/ next to the staged sources
 # and the bundled libopus.a / libmbedcrypto.a it builds. Then, from the threadx dir:
 #   make PLATFORM=linux COMMPILE_DIRS="interface/ts3" DEFAULT_LIBS="common/lib/ql_common_api.lib"
 # The command-line overrides keep the SDK's own makefiles untouched (no interface/mbedtls, no
-# TLS/RTC libs — see BUILD.md for why only ql_common_api is linked).
+# TLS or ByteRTCLite libs — see BUILD.md for why only ql_common_api is linked).
 
 TOP_DIR:=$(TOP_DIR)
 ROOT_DIR:=$(TOP_DIR)/../..

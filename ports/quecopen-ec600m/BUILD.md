@@ -69,6 +69,6 @@ tool). This overwrites the vendor PoC app — the dump in `hw/` is the restore p
 
 - Boots and the kernel actually calls `ts3_entry`.
 - RAM fit at runtime (link reports bss ≈ 105 KB + heap for Opus/mbedTLS/buffers).
-- Audio (`ql_audio_*`), PTT (`ql_pwrkey_*`), and the data call bring-up work as wired.
+- Audio (`ql_audio_*`), PTT (`ql_adc_*`, ADC channel 1 resistor ladder), and the data call bring-up work as wired.
 - `QL_TICKS_PER_MS` (measure on silicon), `ql_geu_random_number` is a true TRNG, and the deploy
-  params in `app_quecopen.cpp` (`TS3_HOST`, `APN_NAME`, `PROFILE_IDX`, volume, PTT source).
+  params in `app_quecopen.cpp` (`TS3_HOST`, `APN_NAME`, `PROFILE_IDX`, volume, `kPttThreshold`).

@@ -4,11 +4,11 @@
 //
 // Verified against the EC600M QuecOpen C-SDK (LTE01R06..AIRTC):
 //   ql_data_call.h  ql_start_data_call / ql_set_auto_connect
-//   ql_power.h      ql_get_pwrkey_status / ql_pwrkey_register_irq
+//   ql_adc.h        ql_adc_init / ql_adc_read (PTT = ADC channel 1, resistor ladder)
 //   ql_audio.h      ql_codec_choose / ql_set_audio_path_receiver / ql_set_volume /
 //                   ql_audio_record_open/read / ql_audio_track_open/write
 //   ql_application.h  application_init(entry, name, stack_kib, prio)
-// TODO(deploy): the APN/profile, codec enum, volume and PTT source are site-specific — set them.
+// TODO(deploy): the APN/profile, codec enum and volume are site-specific — set them.
 
 #include <cstdio>
 #include <cstring>
@@ -20,7 +20,7 @@ extern "C" {
 #include "ql_rtos.h"
 #include "ql_application.h"
 #include "ql_data_call.h"
-#include "ql_power.h"
+#include "ql_adc.h"
 #include "ql_audio.h"
 }
 
@@ -37,7 +37,6 @@ static const int kRate = 16000, kFrame = kRate / 50;  // 16 kHz, 20 ms = 320 sam
 static Ts3Client client;                              // ~81 KB, keep off the task stack
 static OpusEncoder *enc;
 static OpusDecoder *dec;
-static volatile bool ptt_down;      // set from the pwrkey IRQ
 static bool talking;
 static audio_record_handle mic;
 static audio_track_handle spk;
@@ -54,7 +53,13 @@ static void on_voice(void *, uint16_t clid, uint8_t codec, const uint8_t *opus, 
     if (n > 0) ql_audio_track_write(spk, (char *)pcm, (unsigned)n * 2);
 }
 
-static void on_pwrkey(void) { ptt_down = (ql_get_pwrkey_status() != 0); }  // TODO(deploy): side key?
+// PTT is on ADC channel 1 (resistor ladder), not the power key: idle reads ~1201,
+// pressed ~493. Poll it; a reading below the midpoint means held. Retune per board.
+static const unsigned kPttThreshold = (1201 + 493) / 2;   // ~847
+static bool ptt_is_down(void) {
+    unsigned short v = 0xFFFF;
+    return ql_adc_read(ADC_CHANNEL_ADC1, &v) == ADC_READ_SUCCESS && v < kPttThreshold;
+}
 
 static void ts3_entry(void *) {
     port_log("ts3 app start");
@@ -68,7 +73,7 @@ static void ts3_entry(void *) {
     ql_set_volume(AUDIOHAL_SPK_VOL_7);  // TODO(deploy): MUTE..VOL_9, tune for the speaker PA
     mic = ql_audio_record_open(kRate, 1, 0, nullptr);
     spk = ql_audio_track_open(kRate, 1, 0x100, nullptr);
-    ql_pwrkey_register_irq(on_pwrkey);
+    ql_adc_init();                      // PTT reads from ADC channel 1
 
     int err;
     enc = opus_encoder_create(kRate, 1, OPUS_APPLICATION_VOIP, &err);
@@ -90,6 +95,7 @@ static void ts3_entry(void *) {
             client.poll(talking ? 2 : 10);
             if (client.state() != Ts3Client::Connected) continue;
 
+            bool ptt_down = ptt_is_down();      // poll ADC ch1 each active iteration
             if (ptt_down && !talking) talking = true;
             if (talking) {
                 int16_t frame[kFrame];

@@ -126,7 +126,7 @@ void port_log(const char *fmt, ...) {
 }
 
 // ponytail: audio + PTT are app-layer, not part of core/port.h. Verified SDK APIs for the app main:
-//   PTT     : ql_get_pwrkey_status(), ql_pwrkey_register_irq(cb)   [ql_power.h]
+//   PTT     : ql_adc_init(), ql_adc_read(ADC_CHANNEL_ADC1, &v)     [ql_adc.h], resistor ladder
 //   PCM     : ql_pcm_open(...) + read/write                        [ql_audio.h]
 //   speaker : ql_bind_speakerpa_cb, ql_set_audio_path_receiver     [ql_audio.h, seen in dump]
 // Register the app with application_init(ts3_entry,"ts3",<stack_kib>,<prio>) and feed 20 ms

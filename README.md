@@ -22,7 +22,7 @@ ports/                one directory per target, each implements core/port.h
   quecopen-ec600m/    Quectel EC600M, QuecOpen C-SDK (port, app, SDK integration, BUILD.md)
   example/            template port
 test/                 selftest (tsclientlib vectors), port_conformance (checks a port.h implementation)
-docs/                 PORT_CONTRACT.md, PORTING.md
+docs/                 PORT_CONTRACT.md, PORTING.md, PLATFORMS.md
 third_party/          git submodules: mbedtls, opus, ed25519
 build.sh              PC build (kept at the root: it is the documented one-liner)
 CMakeLists.txt        PC / stub build, `-DTS3_PORT=...`
